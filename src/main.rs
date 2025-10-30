@@ -1,50 +1,89 @@
-use std::cmp::Ordering;
 use std::io;
 use rand::Rng;
 
 fn main() {
+    // initialize variables
+    const MIN_RANGE: i32 = 1;
+    const MAX_RANGE: i32 = 100;
+    const MAX_GUESSES: i32 = 6;
 
+    let random_number: i32 = rand::thread_rng().gen_range(MIN_RANGE..=MAX_RANGE);
+    let percent_25: f32 = (random_number as f32/MAX_RANGE as f32) * 25.0; // 25%
+    let percent_5: f32 = (random_number as f32/MAX_RANGE as f32) * 5.0; // 5%
 
-    let secret_number = rand::thread_rng().gen_range(1..=100); // Generating the secret number
-    let repetition_count = 6;
+    let mut result_log: Vec<String> = Vec::new();
+
     let mut guessed_correctly = false;
 
-    println!("Guess the number!"); // Game Title
+    loop {
+        println!("!!!Worlde inspired number guessing game!!!");
+        println!("⬆️/⬇️🟥️ means you've guessed more than 25% away from the correct number");
+        println!("⬆️/⬇️🟨️ means you've guessed within 25% of the correct number");
+        println!("You win if you guess within 5% of the correct number");
 
-    // Game Loop
-    for i in 0..repetition_count {
-        let mut guess = String::new();
 
-        // User-input prompting and handling
-        println!("Please input your guess..");
-        println!("Guesses Left: {}/{repetition_count}",repetition_count - i);
-        println!();
+        println!("Please enter a number... \n");
 
-        io::stdin() // Read user-input
-            .read_line(&mut guess)
-            .expect("Failed to read line");
+        for current_guess in 1..=MAX_GUESSES{
 
-        let guess: u32 = match guess.trim().parse() { // Convert user-input to integer
-            Ok(num) => num,
-            Err(_) => {
-                println!("Please input a number.");
-                continue;
-            }
-        };
+            println!("----");
+            println!("{}/{MAX_GUESSES} Guesses Left\n", MAX_GUESSES - current_guess + 1); // +1 to bring it back up to 6/6 at the start
 
-        // Compare the user-input to the randomly generated number
-        match guess.cmp(&secret_number) {
-            Ordering::Less => println!("Too small!"),
-            Ordering::Greater => println!("Too big!"),
-            Ordering::Equal => {
-                println!("Correct! You win!");
+            let mut guess = String::new();
+
+            io::stdin().read_line(&mut guess).expect("Failed to read line");
+
+            let guess: i32 = match guess.trim().parse() {
+                Ok(num) => num,
+                Err(_) => {
+                    println!("Please input a number!");
+                    continue;
+                }
+            };
+
+            println!();
+
+            let diff: f32 = random_number as f32 - guess as f32;
+
+            if diff.abs() <= percent_5 {
+
                 guessed_correctly = true;
-                break;
+                println!("Correct!");
+                println!("The number was {random_number}!");
+
+                let format = format!("---\nGuesses left: {}/{MAX_GUESSES}", MAX_GUESSES - current_guess + 1 );
+                result_log.insert(0, format);
+                result_log.push("✅".to_string());
+
+                break
+
+            } else if diff.abs() <= percent_25 && diff.abs() > percent_5 {
+
+                let arrow = if diff > 0.0 {"⬆️"} else {"⬇️"};
+                println!("{arrow}🟨️");
+
+                let format = format!("{arrow}🟨️");
+                result_log.push(format);
+
+            } else if diff.abs() > percent_25 {
+
+                let arrow = if diff > 0.0 {"⬆️"} else {"⬇️"};
+                println!("{arrow}️🟥️");
+
+                let format = format!("{arrow}️🟥️");
+                result_log.push(format);
             }
         }
-    }
-    // Send fail message if number couldn't be guessed
-    if !guessed_correctly{
-        println!("Out of guesses! Try again! \nThe correct number was {secret_number}");
+
+        if !guessed_correctly {
+            println!("The number was {random_number}!");
+            let format = format!("---\nGuesses left: X/{MAX_GUESSES}");
+            result_log.insert(0, format);
+        }
+
+        for line in result_log {
+            println!("{}", line);
+        }
+        break
     }
 }
