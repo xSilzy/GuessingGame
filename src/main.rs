@@ -84,6 +84,17 @@ fn main() {
         for line in result_log {
             println!("{}", line);
         }
+
+        prompt_to_exit();
         break
+
     }
+}
+
+fn prompt_to_exit() {
+    println!("\nPress Enter to exit the program...");
+    let stdin = io::stdin();
+    let mut exit_input = String::new();
+    stdin.read_line(&mut exit_input).expect("Failed to read line");
+
 }
